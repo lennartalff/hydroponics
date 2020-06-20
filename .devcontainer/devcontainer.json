@@ -1,0 +1,47 @@
+// For format details, see https://aka.ms/vscode-remote/devcontainer.json or this file's README at:
+// https://github.com/microsoft/vscode-dev-containers/tree/v0.106.0/containers/alpine-3.10-git
+{
+	"name": "AVR",
+	"dockerFile": "Dockerfile",
+	// Set *default* container specific settings.json values on container create. 
+	"settings": {
+		"terminal.integrated.shell.linux": "/bin/bash",
+		"terminal.integrated.shellArgs.linux": [
+			"-l",
+			"-i"
+		],
+		"C_Cpp.clang_format_style": "file",
+		"python.linting.enabled": true,
+		"python.linting.pylintEnabled": true,
+		"python.pythonPath": "/usr/bin/python3",
+		"C/C++ Include Guard.Macro Type": "Filename",
+		"python.autoComplete.extraPaths": ["/workspaces/grow_box/scripts"]
+	},
+	// Add the IDs of extensions you want installed when the container is created.
+	// Note that some extensions may not work in Alpine Linux. See https://aka.ms/vscode-remote/linux.
+	"extensions": [
+		"ms-vscode.cpptools",
+		"cschlosser.doxdocgen",
+		"ms-python.python",
+		"akiramiyakoda.cppincludeguard"
+	],
+	// Use 'forwardPorts' to make a list of ports inside the container available locally.
+	// "forwardPorts": [],
+	// Use 'postCreateCommand' to run commands after the container is created.
+	// "postCreateCommand": "uname -a",
+	// Uncomment when using a ptrace-based debugger like C++, Go, and Rust
+	"runArgs": [
+		//"--device=/dev/avrisp",
+		//"--device=/dev/ftdi",
+		"-e",
+		"DISPLAY=${env:DISPLAY}",
+		"-e",
+		"QT_X11_NO_MITSHM=1",
+		"-v",
+		"/tmp/.X11-unix:/tmp/.X11-unix",
+		"--gpus",
+		"all"
+	],
+	// Uncomment to connect as a non-root user. See https://aka.ms/vscode-remote/containers/non-root.
+	"remoteUser": "vscode"
+}

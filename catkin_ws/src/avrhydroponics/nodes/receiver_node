@@ -1,0 +1,110 @@
+#!/usr/bin/env python3
+
+import rospy
+from std_msgs.msg import Empty, UInt8, Float32, UInt32, Bool
+import serial
+from avrhydroponics.msg import ds18b20
+from avrhydroponics import pkt
+
+
+class Node(object):
+    def __init__(self):
+        rospy.init_node("receiver_node")
+
+        self.port = self.get_serial_port()
+
+        self.timeout_publisher = rospy.Publisher("receive_timeout", Empty)
+        self.ready_publisher = rospy.Publisher("ready_state", Bool)
+        self.owi_data_publisher = rospy.Publisher("owi_temeprature", ds18b20)
+        self.owi_res_publisher = rospy.Publisher("owi_res", UInt8)
+        self.ec_data_publisher = rospy.Publisher("ec_data", UInt32)
+        self.ph_data_publisher = rospy.Publisher("ph_data", Float32)
+
+    def get_serial_port(self):
+        port = rospy.get_param("serial_port")
+        timeout = float(rospy.get_param("serial_timeout"))
+        baud = int(rospy.get_param("serial_baud"))
+        rospy.loginfo("[%s] Connecting on port %s with baud %d and timeout %d",
+                      rospy.get_name(), port, baud, timeout)
+        return serial.Serial(port=port, baudrate=baud, timeout=timeout)
+
+    def run(self):
+        while not rospy.is_shutdown():
+            packet = pkt.read_packet(self.port)
+            if packet:
+                if packet.id == pkt.PACKET_ID_LOGGING:
+                    rospy.loginfo("Received logging packet.")
+                    rospy.logwarn("HANDLER NOT IMPLEMENTED!")
+                elif packet.id == pkt.PACKET_ID_DATA_OWI:
+                    rospy.loginfo("Received OWI data packet.")
+                    msg = ds18b20()
+                    msg.header.stamp = rospy.Time.now()
+                    data = pkt.decode_data_owi(packet)
+                    for i, rom_byte in enumerate(data["rom"]):
+                        msg.rom[i] = int(rom_byte)
+                    msg.temperature = data["temperature"]
+                    self.owi_data_publisher.publish(msg)
+                elif packet.id == pkt.PACKET_ID_RESPONSE_OWI_GET_RES:
+                    rospy.loginfo("Received OWI resolution response.")
+                    msg = UInt8()
+                    msg.data = pkt.decode_response_owi_get_res(packet)
+                    self.owi_res_publisher.publish(msg)
+                elif packet.id == pkt.PACKET_ID_DATA_EC:
+                    rospy.loginfo("Received EC data.")
+                    msg = UInt32()
+                    msg.data = pkt.decode_data_ec(packet)
+                    self.ec_data_publisher.publish(msg)
+                elif packet.id == pkt.PACKET_ID_RESPONSE_EC_GET_CALIB_FORMAT:
+                    rospy.loginfo("Received EC calib format.")
+                    rospy.logwarn("HANDLER NOT IMPLEMENTED!")
+                elif packet.id == pkt.PACKET_ID_RESPONSE_EC_EXPORT_CALIB:
+                    rospy.loginfo("Received EC calib data.")
+                    rospy.logwarn("HANDLER NOT IMPLEMENTED!")
+                elif packet.id == pkt.PACKET_ID_DATA_PH:
+                    rospy.loginfo("Received PH data.")
+                    msg = Float32()
+                    msg.data = pkt.decode_data_ph(packet)
+                    self.ph_data_publisher.publish(msg)
+                elif packet.id == pkt.PACKET_ID_RESPONSE_PH_GET_CALIB_FORMAT:
+                    rospy.loginfo("Received PH calib format.")
+                    rospy.logwarn("HANDLER NOT IMPLEMENTED!")
+                elif packet.id == pkt.PACKET_ID_RESPONSE_PH_EXPORT_CALIB:
+                    rospy.loginfo("Received PH calib data.")
+                    rospy.logwarn("HANDLER NOT IMPLEMENTED!")
+                elif packet.id == pkt.PACKET_ID_RESPONSE_LIGHT_GET:
+                    rospy.loginfo("Received light state.")
+                    rospy.logwarn("HANDLER NOT IMPLEMENTED!")
+                elif packet.id == pkt.PACKET_ID_RESPONSE_LIGHT_BLUE_GET:
+                    rospy.loginfo("Received blue light state.")
+                    rospy.logwarn("HANDLER NOT IMPLEMENTED!")
+                elif packet.id == pkt.PACKET_ID_RESPONSE_LIGHT_RED_GET:
+                    rospy.loginfo("Received red light state.")
+                    rospy.logwarn("HANDLER NOT IMPLEMENTED!")
+                elif packet.id == pkt.PACKET_ID_RESPONSE_LIGHT_WHITE_GET:
+                    rospy.loginfo("Received white light state.")
+                    rospy.logwarn("HANDLER NOT IMPLEMENTED!")
+                elif packet.id == pkt.PACKET_ID_RESPONSE_FAN_GET_SPEED:
+                    rospy.loginfo("Received fan speed")
+                    rospy.logwarn("HANDLER NOT IMPLEMENTED!")
+                elif packet.id == pkt.PACKET_ID_RESPONSE_READY_REQUEST:
+                    rospy.loginfo("Received ready response.")
+                    # TODO: implement communication with sender
+                    msg = Bool()
+                    msg.data = True
+                    self.ready_publisher.publish(msg)
+                elif packet.id == pkt.PACKET_ID_ACK:
+                    rospy.loginfo("Received acknowledgment.")
+                    rospy.logwarn("HANDLER NOT IMPLEMENTED")
+                else:
+                    rospy.logwarn(
+                        "Received packet with ID %d. Did not expect that!",
+                        packet.id)
+
+
+def main():
+    node = Node()
+    node.run()
+
+
+if __name__ == "__main__":
+    main()

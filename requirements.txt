@@ -1,0 +1,7 @@
+crcmod
+matplotlib
+pyserial
+PyQt5
+PyQt5-stubs
+yapf
+pylint

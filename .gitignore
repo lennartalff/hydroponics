@@ -3,3 +3,9 @@
 *.hex
 *.bin
 *.elf
+obj/
+__pycache__/
+build/
+bin/
+devel/
+/catkin_ws/src/CMakeLists.txt

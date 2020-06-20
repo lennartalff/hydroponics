@@ -1,0 +1,8 @@
+{
+    "recommendations": [
+		"cschlosser.doxdocgen",
+    "ms-python.python",
+    "redhat.vscode-xml",
+    "mitaki28.vscode-clang"
+    ]
+}

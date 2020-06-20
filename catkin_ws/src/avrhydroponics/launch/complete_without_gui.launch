@@ -1,0 +1,7 @@
+<launch>
+    <rosparam command="load" file="$(find avrhydroponics)/config/serial.yaml" />
+    <node pkg="avrhydroponics" type="receiver_node" name="receiver" output="screen" />
+    <node pkg="avrhydroponics" type="transmitter_node" name="transmitter" output="screen" />
+
+    
+</launch>

@@ -2,6 +2,8 @@
 #define COMMON_H_
 
 #include <avr/io.h>
+#include <stdint.h>
+#include "return.h"
 
 #define PIN_REGISTER(x) (*(&(x) - 2))
 #define DDR_REGISTER(x) (*(&(x) - 1))

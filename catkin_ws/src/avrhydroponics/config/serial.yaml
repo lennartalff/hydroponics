@@ -1,0 +1,3 @@
+serial_port: "/dev/ftdi"
+serial_baud: 250000
+serial_timeout: 2

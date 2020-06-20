@@ -7,10 +7,10 @@
 
 uint8_t uart_init(uint8_t uart_id, uint32_t baud);
 
-void uart_0_set_receive_callback(void *receive_callback);
-void uart_1_set_receive_callback(void *receive_callback);
-void uart_2_set_receive_callback(void *receive_callback);
-void uart_3_set_receive_callback(void *receive_callback);
+void uart_0_set_receive_callback(void (*receive_callback)(char));
+void uart_1_set_receive_callback(void (*receive_callback)(char));
+void uart_2_set_receive_callback(void (*receive_callback)(char));
+void uart_3_set_receive_callback(void (*receive_callback)(char));
 
 void uart_0_putc(char c);
 void uart_1_putc(char c);
