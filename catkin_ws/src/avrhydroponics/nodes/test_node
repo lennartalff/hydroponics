@@ -1,0 +1,23 @@
+#!/usr/bin/env python3
+
+import rospy
+from avrhydroponics.msg import ds18b20
+
+class Node(object):
+    def __init__(self):
+        rospy.init_node("test_node")
+        rospy.Subscriber("ds18b20", ds18b20, self.on_message)
+
+    def on_message(self, msg):
+        if 40 < msg.temperature < 15:
+            rospy.loginfo("No valid temperature!")
+        else:
+            rospy.loginfo(msg.temperature)
+
+
+def main():
+    node = Node()
+    rospy.spin()
+
+if __name__ == "__main__":
+    main()

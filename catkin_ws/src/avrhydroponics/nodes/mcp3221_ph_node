@@ -1,0 +1,69 @@
+#!/usr/bin/env python3
+
+import rospy
+from std_msgs.msg import Float64
+import smbus2
+from threading import Lock
+import collections
+import concurrent.futures as futures
+import numpy as np
+
+class Node(object):
+    def __init__(self):
+        rospy.init_node("mcp3221_ph")
+        self.bus = smbus2.SMBus(1)
+        self.params = dict()
+        self.load_params()
+        self.lock = Lock()
+        self.samples = np.zeros(int(self.params["sampling_freq"]))
+        self.publisher = rospy.Publisher("ph_voltage", Float64, queue_size=10)
+        self.executor = futures.ThreadPoolExecutor()
+
+    def load_params(self):
+        self.params = rospy.get_param("ph")
+
+    def read_adc(self, address):
+        data = self.bus.read_i2c_block_data(address, 0, 2)
+        return data[0] << 8 | data[1]
+
+    def adc_to_volts(self, adc):
+        voltage = adc * self.params["v_ref"] / self.params["adc_steps"]
+        return voltage
+
+    def run(self):
+        rate = rospy.Rate(self.params["sampling_freq"])
+        publish_timer = rospy.Timer(rospy.Duration(1), self.publish_measurement)
+        index = 0
+        while not rospy.is_shutdown():
+            future = self.executor.submit(self.read_adc, self.params["address"])
+            try:
+                value = future.result(timeout=2.0)
+            except futures.TimeoutError:
+                rospy.logwarn("[%s] I2C read timed out.", rospy.get_name())
+                self.executor._threads.clear()
+                futures.thread._threads_queues.clear()
+            else:
+                with self.lock:
+                    self.samples[index] = value
+                    index += 1
+                    if index >= len(self.samples):
+                        index = 0
+                rate.sleep()
+
+    def publish_measurement(self, event):
+        with self.lock:
+            sample_value = np.average(self.samples)
+        voltage = sample_value * self.params["v_ref"] / self.params["adc_steps"]
+        msg = Float64()
+        msg.data = voltage
+        self.publisher.publish(msg)
+
+def main():
+    node = Node()
+    node.run()
+
+
+if __name__ == "__main__":
+    main()
+
+

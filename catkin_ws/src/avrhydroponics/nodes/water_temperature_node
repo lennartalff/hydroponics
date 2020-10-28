@@ -1,0 +1,101 @@
+#!/usr/bin/env python3
+
+import rospy
+import datetime
+import threading
+import os
+import collections
+from std_msgs.msg import Empty, Float64, UInt32
+from avrhydroponics.msg import ds18b20, WaterMetrics
+from avrhydroponics.srv import RequestScalar, RequestScalarResponse
+
+
+class Node(object):
+    def __init__(self):
+        rospy.init_node("water_temperature_node", disable_signals=True)
+        self.data_lock = threading.RLock()
+
+        self.temperatures = {}
+        self.temperature_min = 20.0
+        self.temperature_max = 20.0
+        self.temperature_avg = 20.0
+        self.update_roms()
+
+        self.publisher = rospy.Publisher("water_temperature",
+                                         Float64,
+                                         queue_size=10)
+
+        rospy.Service("water_temperature", RequestScalar, self.water_temperature_service)
+
+        rospy.Subscriber("ds18b20", ds18b20, self.on_owi_data)
+
+    def water_temperature_service(self, req):
+        with self.data_lock:
+            return RequestScalarResponse(True, self.temperature_avg)
+
+    def on_owi_data(self, msg):
+        rom = tuple(msg.rom)
+        value = msg.temperature
+        stamp = msg.header.stamp.to_sec()
+        with self.data_lock:
+            if rom not in self.temperatures:
+                rospy.logdebug(
+                    "OWI sensor with ROM '%s' not in list of water temperature sensors. Ignoring it",
+                    rom)
+                return
+            entry = dict(value=value, stamp=stamp)
+            self.temperatures[rom] = entry
+
+    def read_roms_from_params(self):
+        data = rospy.get_param("rom_water")
+        roms = []
+        for rom in data:
+            roms.append(tuple(rom))
+        return roms
+
+    def update_roms(self):
+        roms = self.read_roms_from_params()
+        with self.data_lock:
+            self.temperatures = {}
+            for rom in roms:
+                rospy.logdebug("Adding %s to water temperature ROMs", rom)
+                self.temperatures[rom] = dict()
+
+    def run(self):
+        rate = rospy.Rate(1.0)
+        while not rospy.is_shutdown():
+            with self.data_lock:
+                temperatures = []
+                for rom in self.temperatures:
+                    try:
+                        temperatures.append(self.temperatures[rom]["value"])
+                    except KeyError:
+                        pass
+
+                # use default water temperature if no measurements are available
+                if len(temperatures) == 0:
+                    rospy.logwarn(
+                        "Sensor cycle complete, but no water temperatures available yet!"
+                    )
+                else:
+                    self.temperature_avg = sum(temperatures) / len(temperatures)
+                    self.temperature_min = min(temperatures)
+                    self.temperature_max = max(temperatures)
+
+                msg = Float64()
+                msg.data = self.temperature_avg
+                self.publisher.publish(msg)
+            
+            try:
+                rate.sleep()
+            except KeyboardInterrupt:
+                rospy.signal_shutdown("")
+
+
+def main():
+    node = Node()
+    node.run()
+
+
+if __name__ == "__main__":
+    main()

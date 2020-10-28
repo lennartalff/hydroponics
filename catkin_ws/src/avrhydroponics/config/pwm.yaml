@@ -1,0 +1,26 @@
+pwm_max_value: 4095
+pwm_box:
+  top_left: 0
+  top_right: 1
+  bottom_left: 2
+  bottom_right: 3
+
+led_temp_lvls:
+  - low: 0
+    high: 30
+    pwm: 0.0
+  - low: 25
+    high: 40
+    pwm: 0.2
+  - low: 35
+    high: 50
+    pwm: 0.4
+  - low: 45
+    high: 60
+    pwm: 0.6
+  - low: 55
+    high: 70
+    pwm: 0.8
+  - low: 65
+    high: 999
+    pwm: 1.0

@@ -1,0 +1,4 @@
+uint32 relay
+bool state
+---
+bool success

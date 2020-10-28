@@ -1,7 +1,16 @@
 <launch>
-    <rosparam command="load" file="$(find avrhydroponics)/config/serial.yaml" />
-    <node pkg="avrhydroponics" type="receiver_node" name="receiver" output="screen" />
-    <node pkg="avrhydroponics" type="transmitter_node" name="transmitter" output="screen" />
-
+    <arg name="verbose" default="false"/>
+    <rosparam command="load" file="$(find avrhydroponics)/config/rom.yaml" />
+    <rosparam command="load" file="$(find avrhydroponics)/config/pwm.yaml" />
+    <rosparam command="load" file="$(find avrhydroponics)/config/ec_ph.yaml" />
     
+    <node pkg="avrhydroponics" type="relay_node" name="relay" output="screen" respawn="true" />
+    <node pkg="avrhydroponics" type="light_node" name="light" output="screen" respawn="true"/>
+    <node pkg="avrhydroponics" type="ds18b20_node" name="ds18b20" output="screen" respawn="true"/>
+    <node pkg="avrhydroponics" type="bme280_node" name="bme280" output="screen" respawn="true"/>
+    <node pkg="avrhydroponics" type="led_metrics_node" name="led_metrics" output="screen" />
+    <node pkg="avrhydroponics" type="mcp3221_ph_node" name="mcp3221_ph" output="screen" />
+    <node pkg="avrhydroponics" type="mcp3221_ec_node" name="mcp3221_ec" output="screen" />
+    <node pkg="avrhydroponics" type="ec_ph_node" name="ec_ph" output="screen" />
+    <node pkg="avrhydroponics" type="water_temperature_node" name="water_temperature" output="screen" />
 </launch>

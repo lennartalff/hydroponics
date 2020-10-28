@@ -2,62 +2,36 @@
 
 import logging
 import crcmod.predefined
-
+import avrhydroponics.msg
 logger = logging.getLogger("pkt")
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.WARNING)
 ch = logging.StreamHandler()
-ch.setLevel(logging.DEBUG)
+ch.setLevel(logging.WARNING)
 logger.addHandler(ch)
 
-(
-    PACKET_ID_LOGGING,
-    PACKET_ID_CMD_OWI_SET_RES,
-    PACKET_ID_CMD_OWI_GET_RES,
-    PACKET_ID_CMD_OWI_MEASURE,
-    PACKET_ID_DATA_OWI,
-    PACKET_ID_RESPONSE_OWI_GET_RES,
-    PACKET_ID_CMD_EC_MEASURE,
-    PACKET_ID_CMD_EC_GET_CALIB_FORMAT,
-    PACKET_ID_CMD_EC_IMPORT_CALIB,
-    PACKET_ID_CMD_EC_EXPORT_CALIB,
-    PACKET_ID_CMD_EC_CLEAR_CALIB,
-    PACKET_ID_CMD_EC_CALIB_DRY,
-    PACKET_ID_CMD_EC_CALIB_LOW,
-    PACKET_ID_CMD_EC_CALIB_HIGH,
-    PACKET_ID_CMD_EC_COMPENSATION,
-    PACKET_ID_DATA_EC,
-    PACKET_ID_RESPONSE_EC_GET_CALIB_FORMAT,
-    PACKET_ID_RESPONSE_EC_EXPORT_CALIB,
-    PACKET_ID_CMD_PH_MEASURE,
-    PACKET_ID_CMD_PH_GET_CALIB_FORMAT,
-    PACKET_ID_CMD_PH_IMPORT_CALIB,
-    PACKET_ID_CMD_PH_EXPORT_CALIB,
-    PACKET_ID_CMD_PH_CLEAR_CALIB,
-    PACKET_ID_CMD_PH_CALIB_LOW,
-    PACKET_ID_CMD_PH_CALIB_MID,
-    PACKET_ID_CMD_PH_CALIB_HIGH,
-    PACKET_ID_CMD_PH_COMPENSATION,
-    PACKET_ID_DATA_PH,
-    PACKET_ID_RESPONSE_PH_GET_CALIB_FORMAT,
-    PACKET_ID_RESPONSE_PH_EXPORT_CALIB,
-    PACKET_ID_CMD_LIGHT_SET,
-    PACKET_ID_CMD_LIGHT_GET,
-    PACKET_ID_RESPONSE_LIGHT_GET,
-    PACKET_ID_CMD_LIGHT_BLUE_SET,
-    PACKET_ID_CMD_LIGHT_BLUE_GET,
-    PACKET_ID_RESPONSE_LIGHT_BLUE_GET,
-    PACKET_ID_CMD_LIGHT_RED_SET,
-    PACKET_ID_CMD_LIGHT_RED_GET,
-    PACKET_ID_RESPONSE_LIGHT_RED_GET,
-    PACKET_ID_CMD_LIGHT_WHITE_SET,
-    PACKET_ID_CMD_LIGHT_WHITE_GET,
-    PACKET_ID_RESPONSE_LIGHT_WHITE_GET,
-    PACKET_ID_CMD_FAN_SET_SPEED,
-    PACKET_ID_CMD_FAN_GET_SPEED,
-    PACKET_ID_RESPONSE_FAN_GET_SPEED,
-    PACKET_ID_READY_REQUEST,
-    PACKET_ID_RESPONSE_READY_REQUEST,
-    PACKET_ID_ACK) = range(48)
+(PACKET_ID_LOGGING, PACKET_ID_CMD_OWI_SET_RES, PACKET_ID_CMD_OWI_GET_RES,
+ PACKET_ID_CMD_OWI_MEASURE, PACKET_ID_DATA_OWI, PACKET_ID_RESPONSE_OWI_GET_RES,
+ PACKET_ID_CMD_EC_MEASURE, PACKET_ID_CMD_EC_GET_CALIB_FORMAT,
+ PACKET_ID_CMD_EC_IMPORT_CALIB, PACKET_ID_CMD_EC_EXPORT_CALIB,
+ PACKET_ID_CMD_EC_CLEAR_CALIB, PACKET_ID_CMD_EC_CALIB_DRY,
+ PACKET_ID_CMD_EC_CALIB_LOW, PACKET_ID_CMD_EC_CALIB_HIGH,
+ PACKET_ID_CMD_EC_COMPENSATION, PACKET_ID_DATA_EC,
+ PACKET_ID_RESPONSE_EC_GET_CALIB_FORMAT, PACKET_ID_RESPONSE_EC_EXPORT_CALIB,
+ PACKET_ID_CMD_PH_MEASURE, PACKET_ID_CMD_PH_GET_CALIB_FORMAT,
+ PACKET_ID_CMD_PH_IMPORT_CALIB, PACKET_ID_CMD_PH_EXPORT_CALIB,
+ PACKET_ID_CMD_PH_CLEAR_CALIB, PACKET_ID_CMD_PH_CALIB_LOW,
+ PACKET_ID_CMD_PH_CALIB_MID, PACKET_ID_CMD_PH_CALIB_HIGH,
+ PACKET_ID_CMD_PH_COMPENSATION, PACKET_ID_DATA_PH,
+ PACKET_ID_RESPONSE_PH_GET_CALIB_FORMAT, PACKET_ID_RESPONSE_PH_EXPORT_CALIB,
+ PACKET_ID_CMD_LIGHT_SET, PACKET_ID_CMD_LIGHT_GET, PACKET_ID_RESPONSE_LIGHT_GET,
+ PACKET_ID_CMD_LIGHT_BLUE_SET, PACKET_ID_CMD_LIGHT_BLUE_GET,
+ PACKET_ID_RESPONSE_LIGHT_BLUE_GET, PACKET_ID_CMD_LIGHT_RED_SET,
+ PACKET_ID_CMD_LIGHT_RED_GET, PACKET_ID_RESPONSE_LIGHT_RED_GET,
+ PACKET_ID_CMD_LIGHT_WHITE_SET, PACKET_ID_CMD_LIGHT_WHITE_GET,
+ PACKET_ID_RESPONSE_LIGHT_WHITE_GET, PACKET_ID_CMD_FAN_SET_SPEED,
+ PACKET_ID_CMD_FAN_GET_SPEED, PACKET_ID_RESPONSE_FAN_GET_SPEED,
+ PACKET_ID_READY_REQUEST, PACKET_ID_RESPONSE_READY_REQUEST,
+ PACKET_ID_ACK) = range(48)
 
 crc_fun = crcmod.predefined.mkCrcFun("xmodem")
 
@@ -114,6 +88,10 @@ class Packet():
     def update_lengths(self):
         self.payload_length = len(self.payload)
         self.packet_length = 5 + self.payload_length
+
+    def __repr__(self):
+        return "id: {} | packet_length: {} | payload_length: {} | payload: {}".format(
+            self.id, self.packet_length, self.payload_length, self.payload)
 
 
 def decode_logging(packet):
@@ -194,6 +172,7 @@ def encode_cmd_ec_calib_high():
     packet.update_lengths()
     return packet
 
+
 def encode_cmd_ec_compensation(temperature):
     value = int(temperature * 100)
     packet = Packet()
@@ -270,6 +249,7 @@ def encode_cmd_ph_calib_high():
     packet.id = PACKET_ID_CMD_PH_CALIB_HIGH
     packet.update_lengths()
     return packet
+
 
 def encode_cmd_ph_compensation(temperature):
     value = int(temperature * 100)
@@ -464,12 +444,13 @@ def packet_deserialize(data):
         return None
     return packet
 
+
 def read_packet(port):
     packet = None
     while not packet:
         data = port.read_until(chr(0).encode("utf-8"))
         # read timed out
-        if (len(data) == 0 or (data[-1] !=0)):
+        if (len(data) == 0 or (data[-1] != 0)):
             return None
         # read 0 byte before timeout but data is to short to be valid.
         if len(data) < 4:
@@ -478,4 +459,22 @@ def read_packet(port):
         decoded_data = cobs_decode(data)
         packet = packet_deserialize(decoded_data)
 
+    return packet
+
+
+def packet2ros(packet):
+    msg = avrhydroponics.msg.Packet()
+    msg.id = packet.id
+    msg.payload = packet.payload
+    msg.packet_length = packet.packet_length
+    msg.payload_length = packet.payload_length
+    return msg
+
+
+def ros2packet(msg):
+    packet = Packet()
+    packet.id = msg.id
+    packet.payload = bytearray(msg.payload)
+    packet.packet_length = msg.packet_length
+    packet.payload_length = msg.payload_length
     return packet

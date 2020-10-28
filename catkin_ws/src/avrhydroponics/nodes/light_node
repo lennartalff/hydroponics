@@ -1,0 +1,58 @@
+#!/usr/bin/env python3
+
+import rospy
+import datetime
+from avrhydroponics.srv import SetRelay
+
+class Node(object):
+    def __init__(self):
+        rospy.init_node("light_node", disable_signals=True)
+
+        rospy.wait_for_service("set_relay")
+        self.relay = dict(blue=0, red=1, white1=2, white2=3)
+
+        self.set_relay = rospy.ServiceProxy("set_relay", SetRelay)
+    
+
+    def run(self):
+        rate = rospy.Rate(1.0 / 60.0)
+        while not rospy.is_shutdown():
+            now = datetime.datetime.now()
+            now_time = now.time()
+            rospy.logdebug("Current time: %s", now_time)
+            if now_time > datetime.time(6, 0) and now_time < datetime.time(22, 00):
+                rospy.logdebug("Time for light")
+                blue = self.relay["blue"]
+                red = self.relay["red"]
+                white1 = self.relay["white1"]
+                white2 = self.relay["white2"]
+                self.set_relay(red, True)
+                self.set_relay(blue, True)
+                self.set_relay(white1, True)
+                self.set_relay(white2, True)
+            else:
+                rospy.logdebug("Time for sleeping")
+                blue = self.relay["blue"]
+                red = self.relay["red"]
+                white1 = self.relay["white1"]
+                white2 = self.relay["white2"]
+                self.set_relay(red, False)
+                self.set_relay(blue, False)
+                self.set_relay(white1, False)
+                self.set_relay(white2, False)
+            try:
+                rate.sleep()
+            except KeyboardInterrupt:
+                rospy.signal_shutdown("")
+
+def main():
+    node = Node()
+    node.run()
+
+if __name__ == "__main__":
+    main()
+
+                
+            
+
+

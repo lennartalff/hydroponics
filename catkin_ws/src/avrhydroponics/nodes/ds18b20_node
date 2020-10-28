@@ -1,0 +1,94 @@
+#!/usr/bin/env python3
+
+import rospy
+import os
+import concurrent.futures
+from avrhydroponics.msg import ds18b20
+
+OWI_BASEDIR = "/sys/bus/w1/devices"
+OWI_FAMILY_CODE = 28
+
+
+class Node(object):
+    def __init__(self):
+        rospy.init_node("ds18b20_node", disable_signals=True)
+        self.ds18b20_publisher = rospy.Publisher("ds18b20",
+                                                 ds18b20,
+                                                 queue_size=50)
+        self.executor = concurrent.futures.ThreadPoolExecutor()
+
+    def run(self):
+        rate = rospy.Rate(0.25)
+        while not rospy.is_shutdown():
+            time = rospy.Time.now()
+            sensor_names = self.get_sensors()
+            try:
+                try:
+                    results = self.executor.map(self.read_temperature,
+                                                sensor_names,
+                                                timeout=5.0)
+                except concurrent.futures.TimeoutError:
+                    rospy.logwarn("[%s] DS18B20 reading timed out.",
+                                  rospy.get_name())
+
+                else:
+                    temperatures = list(results)
+                    for i, temperature in enumerate(temperatures):
+                        msg = ds18b20()
+                        msg.header.stamp = time
+                        msg.temperature = temperature
+                        msg.rom = bytearray(
+                            self.sensor_string2tuple(sensor_names[i]))
+                        self.ds18b20_publisher.publish(msg)
+
+            except KeyboardInterrupt:
+                rospy.signal_shutdown("Keyboard Interrupt")
+                continue
+
+            try:
+                rate.sleep()
+            except KeyboardInterrupt:
+                rospy.signal_shutdown("Keyboard Interrupt")
+
+    def join_threads(self, threads):
+        temperatures = []
+        for thread in threads:
+            try:
+                temperatures.append(thread.result(timeout=5.0))
+            except concurrent.futures.TimeoutError:
+                rospy.logwarn("[%s] DS18B20 reading timed out.",
+                              rospy.get_name())
+        return temperatures
+
+    def get_sensors(self):
+        all_names = os.listdir(OWI_BASEDIR)
+        sensor_names = []
+        for i, name in enumerate(all_names):
+            if name.startswith(str(OWI_FAMILY_CODE)):
+                sensor_names.append(name)
+        return sensor_names
+
+    def sensor_string2tuple(self, name):
+        name = name.replace("-", "")
+        t = [int(name[i:i + 2], 16) for i in range(0, len(name), 2)]
+        return tuple(t)
+
+    def read_temperature(self, name):
+        file_path = os.path.join(OWI_BASEDIR, name, "temperature")
+        with open(file_path, "r") as file_handle:
+            try:
+                temperature = int(file_handle.readlines()[0])
+            except IndexError:
+                temperature = 20.0 * 1000.0
+                rospy.logwarn("Could not read from '%s'.", file_path)
+            temperature = float(temperature) / 1000.0
+        return temperature
+
+
+def main():
+    node = Node()
+    node.run()
+
+
+if __name__ == "__main__":
+    main()

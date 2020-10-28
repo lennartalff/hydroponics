@@ -1,0 +1,64 @@
+#!/usr/bin/env python3
+
+import rospy
+import numpy as np
+from std_msgs.msg import Float64
+from avrhydroponics.srv import RequestScalar
+
+class Node(object):
+    def __init__(self):
+        rospy.init_node("ec_ph_node")
+        self.ec_calib = dict()
+        self.ph_calib = dict()
+        self.read_params()
+        self.update_calib_ph()
+        self.ph_publisher = rospy.Publisher("pH", Float64, queue_size=10)
+        self.ec_raw_publisher = rospy.Publisher("ec_raw", Float64, queue_size=10)
+        self.ec_compensated_publisher = rospy.Publisher("ec_compensated", Float64, queue_size=10)
+        rospy.wait_for_service("water_temperature")
+        self.water_temperature_service = rospy.ServiceProxy("water_temperature", RequestScalar)
+        rospy.Subscriber("ph_voltage", Float64, self.on_ph_voltage)
+        rospy.Subscriber("ec_voltage", Float64, self.on_ec_voltage)
+
+    def update_calib_ph(self):
+        y = [4, 7, 10]
+        x = [self.ph_calib["ph4_calib"], self.ph_calib["ph7_calib"], self.ph_calib["ph10_calib"]]
+        self.ph_calib["slope"], self.ph_calib["offset"] = np.polyfit(x, y, 1)
+
+    def read_params(self):
+        self.ec_calib = rospy.get_param("ec")
+        self.ph_calib = rospy.get_param("ph")
+
+    def on_ph_voltage(self, msg):
+        voltage = msg.data
+
+        ph = self.ph_calib["offset"] + voltage * self.ph_calib["slope"]
+        msg = Float64()
+        msg.data = ph
+        self.ph_publisher.publish(msg)
+
+    def on_ec_voltage(self, msg):
+        voltage = msg.data
+        ec_raw = 10 ** 6 * (voltage / self.ec_calib["calib_dry"] - 1) / self.ec_calib["res_amp"]
+        try:
+            temperature = self.water_temperature_service().value
+        except rospy.ServiceException as e:
+            rospy.logwarn("Water temperature service call failed: %s", e)
+            temperature = 20.0
+        ec_compensated = ec_raw / (1+ self.ec_calib["temperature_coeff"] * (temperature - 25.0)) 
+        msg = Float64()
+        msg.data = ec_raw
+        self.ec_raw_publisher.publish(msg)
+        msg = Float64()
+        msg.data = ec_compensated
+        self.ec_compensated_publisher.publish(msg)
+        
+
+
+def main():
+    node = Node()
+    rospy.spin()
+
+
+if __name__ == "__main__":
+    main()

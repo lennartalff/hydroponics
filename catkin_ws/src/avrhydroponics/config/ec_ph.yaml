@@ -1,0 +1,22 @@
+ec:
+  wien_voltage_peak: 0.207
+  address: 72
+  k_cell: 1.0
+  res_amp: 1000.0
+  v_ref: 3.3
+  adc_steps: 4096
+  sampling_freq: 231
+  calib_dry: 0.216
+  calib_low:
+    ec: 11670
+    voltage: 2.121
+  temperature_coeff: 0.019
+
+ph:
+  address: 73
+  adc_steps: 4096
+  v_ref: 3.0
+  sampling_freq: 28
+  ph7_calib: 1.487 # 1.487
+  ph4_calib: 1.660 # 1.660
+  ph10_calib: 1.334 # 1.334, 

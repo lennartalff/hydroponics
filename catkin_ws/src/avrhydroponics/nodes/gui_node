@@ -1,0 +1,75 @@
+#!/usr/bin/python3
+
+import rospy
+import sys
+from std_msgs.msg import Float64
+from avrhydroponics import gui
+from avrhydroponics.msg import LedMetrics, AirMetrics
+
+from PyQt5 import QtCore
+from PyQt5 import QtWidgets, QtGui
+
+class Node(QtCore.QObject):
+    ph_update = QtCore.pyqtSignal(float)
+    ec_raw_update = QtCore.pyqtSignal(float)
+    ec_compensated_update = QtCore.pyqtSignal(float)
+    led_update = QtCore.pyqtSignal(float, float, float)
+    air_temp_update = QtCore.pyqtSignal(float)
+    humidity_update = QtCore.pyqtSignal(int)
+    water_temp_update = QtCore.pyqtSignal(float)
+    def __init__(self, main_widget):
+        super(Node, self).__init__(None)
+        rospy.init_node("gui")
+        self.overview_widget = main_widget.get_overview_widget()
+        self.setup_signals()
+        rospy.Subscriber("pH", Float64, self.on_ph)
+        rospy.Subscriber("ec_raw", Float64, self.on_ec_raw)
+        rospy.Subscriber("ec_compensated", Float64, self.on_ec_compensated)
+        rospy.Subscriber("led_metrics", LedMetrics, self.on_led_metrics)
+        rospy.Subscriber("air_metrics", AirMetrics, self.on_air_metrics)
+        rospy.Subscriber("water_temperature", Float64, self.on_water_temperature)
+
+    def setup_signals(self):
+        self.ph_update.connect(self.overview_widget.set_ph_value)
+        self.ec_raw_update.connect(self.overview_widget.set_ec_raw_value)
+        self.ec_compensated_update.connect(self.overview_widget.set_ec_compensated_value)
+        self.led_update.connect(self.overview_widget.set_led_temperature)
+        self.air_temp_update.connect(self.overview_widget.set_air_temperature)
+        self.humidity_update.connect(self.overview_widget.set_humidity)
+        self.water_temp_update.connect(self.overview_widget.set_water_temperature)
+
+    def on_ph(self, msg):
+        ph = msg.data
+        self.ph_update.emit(ph)
+
+    def on_ec_raw(self, msg):
+        ec = msg.data
+        self.ec_raw_update.emit(ec)
+
+    def on_ec_compensated(self, msg):
+        ec = msg.data
+        self.ec_compensated_update.emit(ec)
+
+    def on_led_metrics(self, msg):
+        self.led_update.emit(msg.temperature_min, msg.temperature_max, msg.temperature_avg)
+
+    def on_air_metrics(self, msg):
+        self.air_temp_update.emit(msg.temperature)
+        self.humidity_update.emit(int(msg.humidity))
+
+    def on_water_temperature(self, msg):
+        self.water_temp_update.emit(msg.data)
+
+    
+
+
+
+
+def main():
+    app = QtWidgets.QApplication(sys.argv)
+    win = gui.MainWindow()
+    node = Node(win)
+    app.exec_()
+
+if __name__ == "__main__":
+    main()

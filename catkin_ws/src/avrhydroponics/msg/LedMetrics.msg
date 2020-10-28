@@ -3,3 +3,4 @@ Header header
 float32 temperature_min
 float32 temperature_max
 float32 temperature_avg
+uint32 n_sensors

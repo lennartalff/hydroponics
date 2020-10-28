@@ -179,7 +179,7 @@ return_status_t ph_calibration_high() {
     char buffer[MAX_STRING_LENGTH];
     uint8_t code;
     return_status_t status;
-    status = ph_send_command("Cal,high,4.00");
+    status = ph_send_command("Cal,high,10.00");
     ASSERT_SUCCESS(status);
     _delay_ms(WAIT_TIME_READ_MS);
     while (1) {

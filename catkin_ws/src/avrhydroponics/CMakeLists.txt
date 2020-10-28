@@ -22,14 +22,19 @@ add_message_files(
   AirMetrics.msg
   ds18b20.msg
   LedMetrics.msg
+  WaterMetrics.msg
+  Packet.msg
 )
 
-## Generate services in the 'srv' folder
-# add_service_files(
-#   FILES
-#   Service1.srv
-#   Service2.srv
-# )
+# Generate services in the 'srv' folder
+add_service_files(
+  FILES
+  RequestScalar.srv
+  SendPacket.srv
+  SetFloat.srv
+  SetInt.srv
+  SetRelay.srv
+)
 
 
 # Generate added messages and services with any dependencies listed here

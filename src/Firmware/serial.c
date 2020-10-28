@@ -20,7 +20,7 @@
 #define SERIAL_RX_BUFFER_SIZE 256
 
 static uint8_t serial_initialized = 0;
-static uint8_t log_level = SERIAL_LOG_LVL_DEBUG;
+static uint8_t log_level = SERIAL_LOG_LVL_INFO;
 
 static const char *_get_level_string(serial_log_level_t level) {
     switch (level) {

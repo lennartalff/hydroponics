@@ -241,7 +241,7 @@ void handle_cmd_fan_set_speed(packet_t *packet) {
     uint8_t index;
     uint16_t speed;
     decode_cmd_fan_set_speed(packet, &index, &speed);
-    serial_debug(SERIAL_SRC_GENERAL, "Set fan %d to %d", index, speed);
+    serial_info(SERIAL_SRC_GENERAL, "Set fan %d to %d", index, speed);
     pwm_set(index, speed);
 }
 void handle_cmd_fan_get_speed(packet_t *packet) {}
