@@ -1,5 +1,5 @@
-#!/usr/bin/env python3
-
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 import rospy
 import numpy as np
 from std_msgs.msg import Float64
@@ -21,8 +21,8 @@ class Node(object):
         rospy.Subscriber("ec_voltage", Float64, self.on_ec_voltage)
 
     def update_calib_ph(self):
-        y = [4, 7, 10]
-        x = [self.ph_calib["ph4_calib"], self.ph_calib["ph7_calib"], self.ph_calib["ph10_calib"]]
+        y = [4, 7]
+        x = [self.ph_calib["ph4_calib"], self.ph_calib["ph7_calib"]]
         self.ph_calib["slope"], self.ph_calib["offset"] = np.polyfit(x, y, 1)
 
     def read_params(self):

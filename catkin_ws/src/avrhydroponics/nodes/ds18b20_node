@@ -1,5 +1,5 @@
-#!/usr/bin/env python3
-
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 import rospy
 import os
 import concurrent.futures
@@ -37,8 +37,7 @@ class Node(object):
                         msg = ds18b20()
                         msg.header.stamp = time
                         msg.temperature = temperature
-                        msg.rom = bytearray(
-                            self.sensor_string2tuple(sensor_names[i]))
+                        msg.rom = self.sensor_string2tuple(sensor_names[i])
                         self.ds18b20_publisher.publish(msg)
 
             except KeyboardInterrupt:

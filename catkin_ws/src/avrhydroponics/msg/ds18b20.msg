@@ -1,4 +1,4 @@
 Header header
 
-uint8[] rom
+uint32[] rom
 float32 temperature

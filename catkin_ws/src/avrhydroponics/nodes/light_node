@@ -1,5 +1,5 @@
-#!/usr/bin/env python3
-
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 import rospy
 import datetime
 from avrhydroponics.srv import SetRelay
@@ -26,9 +26,9 @@ class Node(object):
                 red = self.relay["red"]
                 white1 = self.relay["white1"]
                 white2 = self.relay["white2"]
-                self.set_relay(red, True)
+                # self.set_relay(red, True)
                 self.set_relay(blue, True)
-                self.set_relay(white1, True)
+                # self.set_relay(white1, True)
                 self.set_relay(white2, True)
             else:
                 rospy.logdebug("Time for sleeping")

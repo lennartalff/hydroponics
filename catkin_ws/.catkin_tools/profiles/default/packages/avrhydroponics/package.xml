@@ -22,6 +22,7 @@
   <depend>python-serial</depend>
   <depend>python-yaml</depend>
   <depend>python-smbus</depend>
+  <depend>python-bme280</depend>
   <exec_depend>message_runtime</exec_depend>
 
   <!-- The export tag contains other, unspecified, tags -->

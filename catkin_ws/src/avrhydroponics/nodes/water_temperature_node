@@ -1,5 +1,5 @@
-#!/usr/bin/env python3
-
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 import rospy
 import datetime
 import threading
@@ -34,7 +34,7 @@ class Node(object):
             return RequestScalarResponse(True, self.temperature_avg)
 
     def on_owi_data(self, msg):
-        rom = tuple(msg.rom)
+        rom = msg.rom
         value = msg.temperature
         stamp = msg.header.stamp.to_sec()
         with self.data_lock:

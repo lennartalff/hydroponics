@@ -1,14 +1,15 @@
-from PyQt5.QtCore import Qt, QObject, pyqtSignal
-from PyQt5 import QtCore
-from PyQt5 import QtWidgets, QtGui
+# -*- coding: utf-8 -*-
+from PyQt4.QtCore import Qt, QObject, pyqtSignal
+from PyQt4 import QtCore
+from PyQt4 import QtGui
 
-class MainWindow(QtWidgets.QWidget):
+class MainWindow(QtGui.QWidget):
     def __init__(self, parent=None):
-        super().__init__(parent)
+        super(MainWindow, self).__init__(parent)
         self.setWindowTitle("Test")
 
-        layout = QtWidgets.QVBoxLayout()
-        self.tab_widget = QtWidgets.QTabWidget(self)
+        layout = QtGui.QVBoxLayout()
+        self.tab_widget = QtGui.QTabWidget(self)
         layout.addWidget(self.tab_widget)
 
         widget = OverviewWidget(parent=self)
@@ -19,9 +20,9 @@ class MainWindow(QtWidgets.QWidget):
         self.showMaximized()
 
     def get_overview_widget(self):
-        return self.tab_widget.findChild(QtWidgets.QWidget, "overview")
+        return self.tab_widget.findChild(QtGui.QWidget, "overview")
 
-class PanelWidget(QtWidgets.QWidget):
+class PanelWidget(QtGui.QWidget):
     def __init__(self, parent=None, inner_widget=None):
         super(PanelWidget, self).__init__(parent)
         self._border_width = 2
@@ -39,14 +40,14 @@ class PanelWidget(QtWidgets.QWidget):
             self.inner_widget = inner_widget
             self.inner_widget.setParent(self)
         else:
-            self.inner_widget = QtWidgets.QLCDNumber(self)
-            self.inner_widget.setFrameShape(QtWidgets.QFrame.NoFrame)
-        layout = QtWidgets.QVBoxLayout()
+            self.inner_widget = QtGui.QLCDNumber(self)
+            self.inner_widget.setFrameShape(QtGui.QFrame.NoFrame)
+        layout = QtGui.QVBoxLayout()
         layout.addWidget(self.inner_widget)
         self.setLayout(layout)
 
     def get_title_height(self):
-        label = QtWidgets.QLabel(self._title_text)
+        label = QtGui.QLabel(self._title_text)
         label.setFont(self._title_font)
         height = label.fontMetrics().boundingRect(label.text()).height()
         return height
@@ -59,7 +60,7 @@ class PanelWidget(QtWidgets.QWidget):
         self.draw_border(painter)
         self.draw_title(painter)
 
-    def draw_border(self, painter: QtGui.QPainter):
+    def draw_border(self, painter):
         painter.save()
         pen = QtGui.QPen()
         pen.setWidth(self._border_width)
@@ -75,7 +76,7 @@ class PanelWidget(QtWidgets.QWidget):
 
         painter.restore()
 
-    def draw_title(self, painter: QtGui.QPainter):
+    def draw_title(self, painter):
         self.layout().setContentsMargins(
             self._border_radius, self._title_height + self._border_radius,
             self._border_radius, self._border_radius)
@@ -98,11 +99,11 @@ class PanelWidget(QtWidgets.QWidget):
         painter.restore()
 
     @QtCore.pyqtSlot(str)
-    def set_title(self, title: str):
+    def set_title(self, title):
         self._title_text = title
 
     @QtCore.pyqtSlot(QObject)
-    def set_inner_widget(self, widget: QtWidgets.QWidget):
+    def set_inner_widget(self, widget):
         self.layout().removeWidget(self.inner_widget)
         self.inner_widget.setParent(None)
         self.inner_widget = widget
@@ -112,19 +113,19 @@ class LcdPanelWidget(PanelWidget):
     def __init__(self, parent=None, title="LCD"):
         super(LcdPanelWidget,
               self).__init__(parent=parent,
-                             inner_widget=QtWidgets.QLCDNumber())
-        self.inner_widget.setFrameShape(QtWidgets.QFrame.NoFrame)
+                             inner_widget=QtGui.QLCDNumber())
+        self.inner_widget.setFrameShape(QtGui.QFrame.NoFrame)
         self.set_title(title)
         self._digit_count = 7
 
     @QtCore.pyqtSlot(int)
-    def set_number_int(self, number: int):
+    def set_number_int(self, number):
         disp_string = "{}".format(number).center(self._digit_count)
         self.inner_widget.setDigitCount(self._digit_count)
         self.inner_widget.display(disp_string)
 
     @QtCore.pyqtSlot(float)
-    def set_number_float(self, number: float):
+    def set_number_float(self, number):
         disp_string = "{:.2f}".format(number).center(self._digit_count)
         self.inner_widget.setDigitCount(self._digit_count)
         self.inner_widget.display(disp_string)
@@ -135,14 +136,14 @@ class LcdPanelWidget(PanelWidget):
         self.inner_widget.setDigitCount(self._digit_count)
         self.inner_widget.display(disp_string)
 
-class MultiValueLcdWidget(QtWidgets.QWidget):
+class MultiValueLcdWidget(QtGui.QWidget):
     def __init__(self, parent=None, n=2):
         super(MultiValueLcdWidget, self).__init__(parent=parent)
-        layout = QtWidgets.QVBoxLayout()
+        layout = QtGui.QVBoxLayout()
         self.lcds = []
         for i in range(n):
-            self.lcds.append(QtWidgets.QLCDNumber(self))
-            self.lcds[i].setFrameShape(QtWidgets.QFrame.NoFrame)
+            self.lcds.append(QtGui.QLCDNumber(self))
+            self.lcds[i].setFrameShape(QtGui.QFrame.NoFrame)
             layout.addWidget(self.lcds[i])
         self.setLayout(layout)
 
@@ -163,23 +164,23 @@ class MultiValueLcdPanelWidget(PanelWidget):
         self.inner_widget.lcds[index].display(disp_string)
 
 
-class MinMaxAvgLcdWidget(QtWidgets.QWidget):
+class MinMaxAvgLcdWidget(QtGui.QWidget):
     def __init__(self, parent=None):
-        super().__init__(parent=parent)
+        super(MinMaxAvgLcdWidget, self).__init__(parent=parent)
         self._digit_count = 7
-        layout = QtWidgets.QVBoxLayout()
+        layout = QtGui.QVBoxLayout()
         min_palette = QtGui.QPalette()
         min_palette.setColor(QtGui.QPalette.WindowText, QtGui.QColor(100, 149, 237))
         max_palette = QtGui.QPalette()
         max_palette.setColor(QtGui.QPalette.WindowText, QtGui.QColor(255, 50, 50))
-        self.min_lcd = QtWidgets.QLCDNumber(self)
+        self.min_lcd = QtGui.QLCDNumber(self)
         self.min_lcd.setPalette(min_palette)
-        self.min_lcd.setFrameShape(QtWidgets.QFrame.NoFrame)
-        self.max_lcd = QtWidgets.QLCDNumber(self)
+        self.min_lcd.setFrameShape(QtGui.QFrame.NoFrame)
+        self.max_lcd = QtGui.QLCDNumber(self)
         self.max_lcd.setPalette(max_palette)
-        self.max_lcd.setFrameShape(QtWidgets.QFrame.NoFrame)
-        self.avg_lcd = QtWidgets.QLCDNumber(self)
-        self.avg_lcd.setFrameShape(QtWidgets.QFrame.NoFrame)
+        self.max_lcd.setFrameShape(QtGui.QFrame.NoFrame)
+        self.avg_lcd = QtGui.QLCDNumber(self)
+        self.avg_lcd.setFrameShape(QtGui.QFrame.NoFrame)
         layout.addWidget(self.max_lcd)
         layout.addWidget(self.avg_lcd)
         layout.addWidget(self.min_lcd)
@@ -216,7 +217,7 @@ class MinMaxAvgLcdWidget(QtWidgets.QWidget):
 
 class MinMaxAvgLcdPanelWidget(PanelWidget):
     def __init__(self, parent=None, title="LCD"):
-        super().__init__(parent=parent, inner_widget=MinMaxAvgLcdWidget())
+        super(MinMaxAvgLcdPanelWidget, self).__init__(parent=parent, inner_widget=MinMaxAvgLcdWidget())
         self.set_title(title)
     
     def set_min_max_avg(self, min_val, max_val, avg_val):
@@ -225,13 +226,13 @@ class MinMaxAvgLcdPanelWidget(PanelWidget):
         self.inner_widget.set_avg_float(float(avg_val))
 
 
-class LcdGridWidget(QtWidgets.QWidget):
+class LcdGridWidget(QtGui.QWidget):
     def __init__(self, size, titles, parent=None):
         super(LcdGridWidget, self).__init__(parent)
         lcd_count = size[0] * size[1]
         while len(titles) < lcd_count:
             titles.append("Unnamed Title")
-        layout = QtWidgets.QGridLayout()
+        layout = QtGui.QGridLayout()
         self.widgets = []
         self.grid_size = size
 
